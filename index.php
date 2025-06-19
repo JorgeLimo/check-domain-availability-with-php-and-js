@@ -1,73 +1,101 @@
 <!DOCTYPE html>
-<html>
-   <head>
-      <title>Verificar un Dominio</title>
-      <!-- Latest compiled and minified CSS -->
-      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-      <!-- Optional theme -->
-      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
-      <!-- Latest compiled and minified JavaScript Jquery-->
-      <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
-      <!-- Latest compiled and minified JavaScript -->
-      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-   </head>
-   <body>
-      <center>
-         <h2>Revisar si el dominio esta disponible</h2>
-      </center>
-      <br>
-      <div class="container">
-         <div class="row">
-               <div class="col-md-6">
-                  <input name="dominio" class="form-control" id="dominioData" placeholder="Ingrese el dominio que deseas, ejm: midominio" size="30" maxlength="35"> 
-               </div>
-               <div class="col-md-6">
-                  <select name="ext" id="ext"  class="form-control">
-                     <option value="com" selected>.com</option>
-                     <option value="net">.net</option>
-                     <option value="org">.org</option>
-                     <option value="org">.info</option>
-                  </select>
-               </div>
-            <center>
-               <button style="margin-top:30px" id="getData" type="submit" class="btn btn-primary">Revisar</button>
-            </center>
-            <div  style="margin-top:30px"  id="result"></div>
-         </div>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Domain Availability Checker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap 5 CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <style>
+    body {
+      background-color: #f8f9fa;
+      padding-top: 40px;
+    }
+    .main-wrapper {
+      max-width: 700px;
+      margin: auto;
+    }
+    .result-img {
+      max-width: 250px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container main-wrapper">
+    <h2 class="text-center mb-4">Check Domain Availability</h2>
+    
+    <div class="row g-3">
+      <div class="col-md-6">
+        <input type="text" id="dominioData" class="form-control" placeholder="e.g., mydomain">
       </div>
-      <script type="text/javascript">
-        $( "#getData" ).click(function() {
+      <div class="col-md-6">
+        <select id="ext" class="form-select">
+          <option value="com" selected>.com</option>
+          <option value="net">.net</option>
+          <option value="org">.org</option>
+          <option value="info">.info</option>
+        </select>
+      </div>
+    </div>
 
-            var getName = $("#dominioData").val();
-            var getDomain = $("#ext").val()
+    <div class="text-center mt-4">
+      <button id="getData" class="btn btn-primary">Check</button>
+    </div>
 
-            if (getName != "") {
-              $("#result").empty();
-              $("#result").html('<center><img src="http://dribbble.s3.amazonaws.com/users/4613/screenshots/911982/jar-loading.gif" /></center>');            
+    <div id="result" class="mt-4"></div>
+  </div>
 
-              var dataString = 'name='+getName+'&domain='+getDomain;
-                $.ajax({
-                    type: "POST",
-                    url: "searchDomain.php",
-                    data: dataString,
-                    success: function(data) {
-                        $("#result").empty();
-                        if (data == 1) {
-                            $("#result").html('<div class="alert alert-success"><h4>Buenas noticias, el dominio <strong>www.'+getName+'.'+getDomain+'</strong> se encuentra disponible</h4></div><br><center><img src="https://cdn2.iconfinder.com/data/icons/social-buttons-2/512/thumb_up-512.png" style="width:300px"/></center>'); 
-                        }else{
-                            $("#result").html('<div class="alert alert-danger"><h4>Hay un problema, el dominio <strong>www.'+getName+'.'+getDomain+'</strong> no se encuentra disponible</h4></div><br><center><img src="https://cdn2.iconfinder.com/data/icons/social-buttons-2/512/thumb_down-512.png" style="width:300px"/></center>'); 
-                        }            
-                    }
-                });
+  <script>
+    document.getElementById('getData').addEventListener('click', async () => {
+      const name = document.getElementById('dominioData').value.trim();
+      const ext = document.getElementById('ext').value;
+      const result = document.getElementById('result');
 
-            }else{
+      if (name === "") {
+        result.innerHTML = '<div class="alert alert-danger">Please enter a domain name.</div>';
+        return;
+      }
 
-                $("#result").html('<div class="alert alert-danger">Ingrese el nombre del dominio que desea </div>');
-            
-            }
+      result.innerHTML = '<div class="text-center"><img src="https://i.imgur.com/ZKZ8Y5v.gif" width="60" alt="Loading..."></div>';
 
+      try {
+        const response = await fetch('searchDomain.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: `name=${encodeURIComponent(name)}&domain=${encodeURIComponent(ext)}`
         });
-      </script>
-   </body>
-</html>
 
+        const data = await response.text();
+        const fullDomain = `www.${name}.${ext}`;
+
+        if (data == 1) {
+          result.innerHTML = `
+            <div class="alert alert-success text-center">
+              <h4>✅ Good news! <strong>${fullDomain}</strong> is available.</h4>
+              <img src="https://cdn2.iconfinder.com/data/icons/social-buttons-2/512/thumb_up-512.png" class="result-img" />
+            </div>
+          `;
+        } else {
+          result.innerHTML = `
+            <div class="alert alert-danger text-center">
+              <h4>❌ Sorry, <strong>${fullDomain}</strong> is not available.</h4>
+              <img src="https://cdn2.iconfinder.com/data/icons/social-buttons-2/512/thumb_down-512.png" class="result-img" />
+            </div>
+          `;
+        }
+      } catch (error) {
+        result.innerHTML = '<div class="alert alert-danger">Error contacting server. Please try again later.</div>';
+        console.error('Error:', error);
+      }
+    });
+  </script>
+
+</body>
+</html>
